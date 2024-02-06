@@ -1,17 +1,20 @@
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
-import conversations from "../conversations.json" assert { type: "json" };
 
 import fs from "fs";
+import { supabase } from "./db/conexion.js";
+import { getChatMessages } from "./services/chatService.js";
+import cors from 'cors'
 const PORT = 4000;
 const app = express();
 const server = http.createServer(app);
-let messages = conversations;
+let messages = await getChatMessages()
+
+app.use(cors())
 
 app.get("/", (req, res) => {
   res.json({
-    message: "sadasdas"
   });
 });
 const io = new Server(server, {
@@ -23,7 +26,6 @@ const io = new Server(server, {
 app.get("/messages", (req, res) => {
   try {
     res.status(200).json({
-      ok: true,
       messages
     });
   } catch (error) {
@@ -34,10 +36,10 @@ app.get("/messages", (req, res) => {
   }
 });
 
-app.post("/update-message", (req, res) => {
+app.post("/update-message", async (req, res) => {
   try {
     const { messages } = req.body;
-    fs.writeFileSync("conversations.json", JSON.stringify(messages));
+    await supabase.from('chat_messages').insert({ message: data.text, id_chat: 1, name_sender: data.actor })
     res.status(200).json({
       ok: true
     });
@@ -52,17 +54,18 @@ app.post("/update-message", (req, res) => {
 io.on("connection", (socket) => {
   console.log({ message: "a new client connected", id: socket.id });
   socket.join("chat");
-  socket.to("chat").emit("server:loadmessages", messages);
-  socket.on("server:addMessage", function (data) {
-    messages.push(data);
-    socket.broadcast.emit("server:loadmessages", messages);
+  socket.to("chat").emit("messages", messages);
+  socket.on("server:addMessage", async function (data) {
+    messages.push(data)
+    await supabase.from('chat_messages').insert({ message: data.text, id_chat: 1, name_sender: data.actor })
+    socket.broadcast.emit("messages", messages);
   });
 
   socket.on("disconnect", () => {
-    console.log(socket.id, "disconnected");
+    console.log({ message: "a client disconnected", id: socket.id });
   });
 });
 
 server.listen(PORT, () => {
-  console.log(`Listening in PORT ${PORT}`);
+  console.log(`Socket Server listening in PORT ${PORT}`);
 });
