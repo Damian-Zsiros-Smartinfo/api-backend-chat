@@ -5,7 +5,7 @@ export async function getChatMessages() {
   try {
     let { data: chat_messages, error } = await supabase
       .from("chat_messages")
-      .select("");
+      .select("id,name_sender,message");
 
     if (!chat_messages) throw new Error();
 
