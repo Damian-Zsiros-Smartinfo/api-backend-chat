@@ -18,6 +18,8 @@ app.get("/", (req, res) => {
   res.json({});
 });
 
+app.use(messageRouter);
+
 const io = new Server(server, {
   cors: {
     origin: "*"
