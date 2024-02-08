@@ -5,17 +5,16 @@ import http from "http";
 import fs from "fs";
 import { supabase } from "./db/conexion.js";
 import { getChatMessages } from "./services/chatService.js";
-import cors from 'cors'
+import cors from "cors";
 const PORT = 4000;
 const app = express();
 const server = http.createServer(app);
-let messages = await getChatMessages()
+let messages = await getChatMessages();
 
-app.use(cors())
+app.use(cors());
 
 app.get("/", (req, res) => {
-  res.json({
-  });
+  res.json({});
 });
 const io = new Server(server, {
   cors: {
@@ -39,7 +38,9 @@ app.get("/messages", (req, res) => {
 app.post("/update-message", async (req, res) => {
   try {
     const { messages } = req.body;
-    await supabase.from('chat_messages').insert({ message: data.text, id_chat: 1, name_sender: data.actor })
+    await supabase
+      .from("chat_messages")
+      .insert({ message: data.text, id_chat: 1, name_sender: data.actor });
     res.status(200).json({
       ok: true
     });
@@ -54,12 +55,7 @@ app.post("/update-message", async (req, res) => {
 io.on("connection", (socket) => {
   console.log({ message: "a new client connected", id: socket.id });
   socket.join("chat");
-  socket.to("chat").emit("messages", messages);
-  socket.on("server:addMessage", async function (data) {
-    messages.push(data)
-    await supabase.from('chat_messages').insert({ message: data.text, id_chat: 1, name_sender: data.actor })
-    socket.broadcast.emit("messages", messages);
-  });
+  so;
 
   socket.on("disconnect", () => {
     console.log({ message: "a client disconnected", id: socket.id });
