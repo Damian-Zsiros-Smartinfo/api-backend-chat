@@ -1,8 +1,9 @@
 {
   "events": {
-    "prestart": "pnpm run build"
+    "restart": "clear"
   },
-  "watch": ["src"],
+  "watch": ["./src/**"],
   "ext": "ts",
-  "exec": "node dist/index.js"
+  "exec": "pnpm build && node dist/index.js"
+
 }
