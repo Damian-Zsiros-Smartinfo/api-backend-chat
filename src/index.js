@@ -6,7 +6,7 @@ import fs from "fs";
 import { supabase } from "./db/conexion.js";
 import { getChatMessages } from "./services/chatService.js";
 import cors from "cors";
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 const app = express();
 const server = http.createServer(app);
 let messages = await getChatMessages();
