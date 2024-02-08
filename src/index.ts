@@ -18,6 +18,7 @@ export let messages: Partial<Message>[] | undefined = [];
 
 app.use(cors());
 app.use(express.json());
+
 app.use(morgan("combined"));
 
 app.get("/", (req, res) => {
