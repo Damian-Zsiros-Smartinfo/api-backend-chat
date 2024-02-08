@@ -5,13 +5,16 @@ export async function getChatMessages() {
   try {
     let { data: chat_messages, error } = await supabase
       .from("chat_messages")
-      .select("*");
+      .select("");
 
-    return chat_messages?.map((message: Message) => {
+    if (!chat_messages) throw new Error();
+
+    return chat_messages.map((message: unknown) => {
+      const messageInfo = message as Message;
       return {
-        id: message.id,
-        actor: message.name_sender,
-        text: message.message
+        id: messageInfo.id,
+        actor: messageInfo.name_sender,
+        text: messageInfo.message
       };
     });
   } catch (error) {
