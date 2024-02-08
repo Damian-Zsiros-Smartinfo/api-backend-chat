@@ -1,17 +1,17 @@
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
-
-import fs from "fs";
 import { supabase } from "./db/conexion.js";
 import { getChatMessages } from "./services/chatService.js";
 import cors from "cors";
+
 const PORT = process.env.PORT || 4000;
 const app = express();
 const server = http.createServer(app);
 let messages = await getChatMessages();
 
 app.use(cors());
+app.use(express.json({ extended: false }));
 
 app.get("/", (req, res) => {
   res.json({});
