@@ -55,7 +55,11 @@ app.post("/update-message", async (req, res) => {
 io.on("connection", (socket) => {
   console.log({ message: "a new client connected", id: socket.id });
   socket.join("chat");
-  so;
+  socket.to("chat").emit("server:loadmessages", messages);
+  socket.on("server:addMessage", function (data) {
+    messages.push(data);
+    socket.broadcast.emit("server:loadmessages", messages);
+  });
 
   socket.on("disconnect", () => {
     console.log({ message: "a client disconnected", id: socket.id });
