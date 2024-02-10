@@ -9,6 +9,9 @@ import messageRouter from "./routes/messagesRoutes";
 import { Message } from "types/chatTypes";
 import morgan from "morgan";
 import { config } from 'dotenv';
+import path from 'path'
+import { writeFile } from 'fs/promises'
+import uploadImage from 'services/uploadImagesService';
 config()
 
 const PORT = process.env.PORT || 4000;
@@ -43,16 +46,20 @@ io.on("connection", (socket) => {
   socket.join("chat");
   socket.to("chat").emit("server:loadmessages", messages);
   socket.on("server:addMessage", async function (data) {
-    console.log(data.images[0])
     if (messages) {
       messages.push(data);
     }
-    await supabase
+    const { data: data2, error } = await supabase
       .from("chat_messages")
-      .insert({ message: data.text, id_chat: 1, name_sender: data.actor });
-    const imagesFile: string[] = data.images
+      .upsert({ message: data.text, id_chat: 1, name_sender: data.actor }).select() || []
+    const dataMessagedAdded = data2 ?? []
+    if (error) throw new Error()
+    const imagesFile: { file: { name: string }, arrayBuffer: Buffer }[] = data.images
     imagesFile.map(async image => {
-      await uploadImage(image)
+      const url = await uploadImage(image)
+      await supabase
+        .from("images")
+        .insert({ link_image: url, id_message: dataMessagedAdded[0]?.id });
     })
     socket.broadcast.emit("server:loadmessages", messages);
   });
@@ -62,28 +69,6 @@ io.on("connection", (socket) => {
 });
 
 
-async function uploadImage(imageFile: string) {
-  try {
-    // Configura tus credenciales de Cloudinary
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET
-    });
-
-    cloudinary.uploader.upload(imageFile, (error, result) => {
-      if (error) {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      } else {
-        console.log('URL de la imagen subida:', result?.secure_url);
-        return result?.secure_url
-      }
-    });
-  } catch (error) {
-    console.error('Error al procesar la imagen:', error);
-    throw new Error('Error al procesar la imagen');
-  }
-}
 
 server.listen(PORT, () => {
   console.log(`Socket Server listening in PORT ${PORT}`);
