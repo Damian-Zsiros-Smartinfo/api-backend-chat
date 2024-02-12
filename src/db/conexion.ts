@@ -7,9 +7,6 @@ import { Image } from "../entities/Image";
 
 config();
 
-const supabaseUrl = process.env.SUPABASE_URL ?? "";
-const supabaseKey = process.env.SUPABASE_KEY ?? "";
-
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DATABASE_HOST,
