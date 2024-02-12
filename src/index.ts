@@ -18,7 +18,6 @@ const PORT = process.env.PORT || 4000
 const app = express()
 const server = http.createServer(app)
 export let messages: Partial<Message>[] | undefined = []
-
 ;(async () => {
   messages = await getChatMessages()
 })()
@@ -65,6 +64,20 @@ io.on('connection', (socket) => {
     })
     socket.broadcast.emit('server:loadmessages', messages)
   })
+  socket.on('server:editMessage', async function (data) {
+    const {
+      messageId,
+      messageEdited,
+    }: { messageId: string; messageEdited: string } = data
+    const { data: data2, error } =
+      (await supabase
+        .from('chat_messages')
+        .update({ message: messageEdited })
+        .eq('id', messageId)) || []
+    if (error) throw new Error()
+    socket.broadcast.emit('server:loadmessages', messages)
+  })
+
   socket.on('disconnect', () => {
     console.log({ message: 'a client disconnected', id: socket.id })
   })
