@@ -1,17 +1,16 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
-  TableForeignKey,
 } from "typeorm";
 import { Chat } from "./Chat";
 
 @Entity("chat_messages")
-export class ChatMessage {
+export class ChatMessage extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

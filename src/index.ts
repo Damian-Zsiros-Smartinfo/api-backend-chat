@@ -2,7 +2,6 @@ import { v2 as cloudinary } from "cloudinary";
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
-import supabase, { AppDataSource } from "./db/conexion";
 import { getChatMessages } from "./services/chatService";
 import cors from "cors";
 import messageRouter from "./routes/messagesRoutes";
@@ -13,27 +12,15 @@ import path from "path";
 import { writeFile } from "fs/promises";
 import uploadImage from "./services/uploadImagesService";
 import { arrayBufferToBase64 } from "./utils/arrayBufferToBase64";
+import { ChatMessage } from "./entities/ChatMessage";
+import { Image } from "./entities/Image";
+import { AppDataSource } from "./db/conexion";
 config();
 
+export let messages: any = [];
 const PORT = process.env.PORT || 4000;
 const app = express();
 const server = http.createServer(app);
-export let messages: Partial<Message>[] | undefined = [];
-(async () => {
-  messages = await getChatMessages();
-})();
-
-app.use(cors());
-app.use(express.json());
-
-app.use(morgan("combined"));
-
-app.get("/", (req, res) => {
-  res.json({});
-});
-
-app.use(messageRouter);
-
 export const io = new Server(server, {
   cors: {
     origin: "*",
@@ -41,71 +28,87 @@ export const io = new Server(server, {
   maxHttpBufferSize: 10e7, // Establece el tamaño máximo del paquete en bytes (por ejemplo, 100 MB)
 });
 
-AppDataSource.initialize();
+async function main() {
+  messages = await getChatMessages();
 
-io.on("connection", (socket) => {
-  console.log({ message: "a new client connected", id: socket.id });
-  socket.join("chat");
-  socket.to("chat").emit("server:loadmessages", messages);
-  socket.on("server:addMessage", async function (data) {
-    try {
-      if (messages) {
-        messages.push(data);
+  app.use(cors());
+  app.use(express.json());
+
+  app.use(morgan("combined"));
+
+  app.get("/", (req, res) => {
+    res.json({});
+  });
+
+  app.use(messageRouter);
+
+  AppDataSource.initialize();
+
+  io.on("connection", (socket) => {
+    console.log({ message: "a new client connected", id: socket.id });
+    socket.join("chat");
+    socket.to("chat").emit("server:loadmessages", messages);
+    socket.on("server:addMessage", async function (data) {
+      try {
+        if (messages) {
+          messages.push(data);
+        }
+        const chatMessageNew = new ChatMessage();
+        chatMessageNew.message = data.text;
+        chatMessageNew.id_chat = 1;
+        chatMessageNew.name_sender = data.actor;
+        await chatMessageNew.save({});
+        const chatMessageAdded = chatMessageNew;
+        const imagesFile: {
+          file: { name: string };
+          arrayBuffer: Buffer;
+          image: string;
+        }[] = data.images;
+        await imagesFile.forEach(async (image) => {
+          const imageNew = new Image();
+          imageNew.id_message = chatMessageAdded.id;
+          imageNew.image = image.image;
+          await imageNew.save();
+        });
+        socket.broadcast.emit("server:loadmessages", messages);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error);
+        }
       }
-      const { data: data2, error } =
-        (await supabase
-          .from("chat_messages")
-          .upsert({ message: data.text, id_chat: 1, name_sender: data.actor })
-          .select()) || [];
-      const dataMessagedAdded = data2 ?? [];
-      console.error(error);
-      const imagesFile: {
-        file: { name: string };
-        arrayBuffer: Buffer;
-        image: string;
-      }[] = data.images;
-      await imagesFile.forEach(async (image) => {
-        await supabase
-          .from("images")
-          .insert({ image: image.image, id_message: dataMessagedAdded[0].id });
+    });
+    socket.on("server:editMessage", async function (data) {
+      const {
+        messageId,
+        messageEdited,
+      }: { messageId: string; messageEdited: string } = data;
+      console.log(data);
+      const messagesRepository = AppDataSource.getRepository(ChatMessage);
+      const message =
+        (await messagesRepository.findOneBy({ id: parseInt(messageId) })) ||
+        new ChatMessage();
+      message.message = messageEdited;
+      await messagesRepository.save(message);
+      messages = messages?.map((message: any) => {
+        if (message.id == parseInt(messageId)) {
+          return {
+            ...message,
+            text: messageEdited,
+          };
+        }
+        return message;
       });
       socket.broadcast.emit("server:loadmessages", messages);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(error);
-      }
-    }
-  });
-  socket.on("server:editMessage", async function (data) {
-    const {
-      messageId,
-      messageEdited,
-    }: { messageId: string; messageEdited: string } = data;
-    console.log(data);
-    const { data: data2, error } =
-      (await supabase
-        .from("chat_messages")
-        .update({ message: messageEdited })
-        .eq("id", messageId)) || [];
-    console.error(error);
-    if (error) throw new Error();
-    messages = messages?.map((message) => {
-      if (message.id == messageId) {
-        return {
-          ...message,
-          text: messageEdited,
-        };
-      }
-      return message;
     });
-    socket.broadcast.emit("server:loadmessages", messages);
+
+    socket.on("disconnect", () => {
+      console.log({ message: "a client disconnected", id: socket.id });
+    });
   });
 
-  socket.on("disconnect", () => {
-    console.log({ message: "a client disconnected", id: socket.id });
+  server.listen(PORT, () => {
+    console.log(`Socket Server listening in PORT ${PORT}`);
   });
-});
+}
 
-server.listen(PORT, () => {
-  console.log(`Socket Server listening in PORT ${PORT}`);
-});
+main();

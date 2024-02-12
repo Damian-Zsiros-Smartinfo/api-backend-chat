@@ -1,28 +1,26 @@
-import { Image, Message } from "types/chatTypes";
-import supabase from "../db/conexion";
-
+import { Message } from "types/chatTypes";
+import { ChatMessage } from "../entities/ChatMessage";
+import { Image, Image as ImageEntity } from "../entities/Image";
 export async function getChatMessages() {
   try {
-    let { data: chat_messages, error } = await supabase
-      .from("chat_messages")
-      .select("*");
+    const chat_messages = await ChatMessage.find({ where: { id_chat: 1 } });
+    console.log(chat_messages.length);
 
     if (!chat_messages) throw new Error();
 
     const messagesWithImagesPromises = chat_messages.map(
       async (message: any) => {
-        const messageInfo = message as Message;
+        const messageInfo: ChatMessage = message;
 
-        let { data: images_messages, error: error3 } = await supabase
-          .from("images")
-          .select("*")
-          .eq("id_message", message.id);
+        const images_messages: Image[] = await ImageEntity.findBy({
+          id_message: message.id,
+        });
 
         return {
           id: messageInfo.id,
           actor: messageInfo.name_sender,
           text: messageInfo.message,
-          images: images_messages as Image[],
+          images: images_messages,
           created_at: messageInfo.created_at || "",
         };
       }

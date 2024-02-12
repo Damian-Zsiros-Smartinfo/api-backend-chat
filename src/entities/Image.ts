@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -11,7 +12,7 @@ import {
 import { ChatMessage } from "./ChatMessage";
 
 @Entity("images")
-export class Image {
+export class Image extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

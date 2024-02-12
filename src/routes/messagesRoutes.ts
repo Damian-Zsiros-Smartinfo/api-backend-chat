@@ -1,11 +1,13 @@
 import { Message } from "types/chatTypes";
 import { io, messages } from "../index";
 import { Router } from "express";
+import { getChatMessages } from "../services/chatService";
 
 const router = Router();
 
-router.get("/messages", (req, res) => {
+router.get("/messages", async (req, res) => {
   try {
+    const messages = await getChatMessages();
     res.status(200).json({
       messages,
     });
