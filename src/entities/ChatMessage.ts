@@ -19,7 +19,7 @@ export class ChatMessage {
   @JoinColumn()
   id_chat: number;
 
-  @Column({
+  @Column("text", {
     default: "",
   })
   message: string;
