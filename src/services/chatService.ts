@@ -4,7 +4,6 @@ import { Image, Image as ImageEntity } from "../entities/Image";
 export async function getChatMessages() {
   try {
     const chat_messages = await ChatMessage.find({ where: { id_chat: 1 } });
-    console.log(chat_messages.length);
 
     if (!chat_messages) throw new Error();
 

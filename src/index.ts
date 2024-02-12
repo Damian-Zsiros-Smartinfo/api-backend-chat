@@ -82,7 +82,6 @@ async function main() {
         messageId,
         messageEdited,
       }: { messageId: string; messageEdited: string } = data;
-      console.log(data);
       const messagesRepository = AppDataSource.getRepository(ChatMessage);
       const message =
         (await messagesRepository.findOneBy({ id: parseInt(messageId) })) ||
