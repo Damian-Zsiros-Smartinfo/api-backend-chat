@@ -23,6 +23,7 @@ export async function getChatMessages() {
           actor: messageInfo.name_sender,
           text: messageInfo.message,
           images: images_messages as Image[],
+          created_at: messageInfo.created_at || "",
         };
       }
     );

@@ -2,7 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
-import supabase from "./db/conexion";
+import supabase, { AppDataSource } from "./db/conexion";
 import { getChatMessages } from "./services/chatService";
 import cors from "cors";
 import messageRouter from "./routes/messagesRoutes";
@@ -40,6 +40,8 @@ export const io = new Server(server, {
   },
   maxHttpBufferSize: 10e7, // Establece el tamaño máximo del paquete en bytes (por ejemplo, 100 MB)
 });
+
+AppDataSource.initialize();
 
 io.on("connection", (socket) => {
   console.log({ message: "a new client connected", id: socket.id });

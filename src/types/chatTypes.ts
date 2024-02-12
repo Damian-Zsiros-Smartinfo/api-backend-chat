@@ -2,6 +2,7 @@ export interface Message {
   id: string;
   message: string;
   name_sender: string;
+  created_at?: string;
   images?:
     | Image[]
     | {

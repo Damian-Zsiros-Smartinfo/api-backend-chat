@@ -19,7 +19,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "removeComments": true,
-    "sourceMap": false
+    "sourceMap": false,
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules/**/*", ".vscode/**/*"],
