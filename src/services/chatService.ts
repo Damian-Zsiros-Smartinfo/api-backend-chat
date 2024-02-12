@@ -1,23 +1,23 @@
-import { Message } from "types/chatTypes.js";
-import supabase from "../db/conexion.js";
+import { Message } from 'types/chatTypes'
+import supabase from '../db/conexion'
 
 export async function getChatMessages() {
   try {
     let { data: chat_messages, error } = await supabase
-      .from("chat_messages")
-      .select("id,name_sender,message");
+      .from('chat_messages')
+      .select('id,name_sender,message')
 
-    if (!chat_messages) throw new Error();
+    if (!chat_messages) throw new Error()
 
     return chat_messages.map((message: any) => {
-      const messageInfo = message as Message;
+      const messageInfo = message as Message
       return {
         id: messageInfo.id,
         actor: messageInfo.name_sender,
-        text: messageInfo.message
-      };
-    });
+        text: messageInfo.message,
+      }
+    })
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
 }
