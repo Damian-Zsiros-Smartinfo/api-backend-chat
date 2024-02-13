@@ -17,7 +17,6 @@ import { Image } from "./entities/Image";
 import { AppDataSource } from "./db/conexion";
 config();
 
-let messages: any = [];
 const PORT = process.env.PORT || 4000;
 const app = express();
 const server = http.createServer(app);
@@ -29,8 +28,6 @@ export const io = new Server(server, {
 });
 
 async function main() {
-  messages = await getChatMessages();
-
   app.use(cors());
   app.use(express.json());
 
@@ -44,10 +41,10 @@ async function main() {
 
   AppDataSource.initialize();
 
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
     console.log({ message: "a new client connected", id: socket.id });
     socket.join("chat");
-    socket.broadcast.emit("server:loadmessages", messages);
+    socket.broadcast.emit("server:loadmessages", await getChatMessages());
     socket.on("server:addMessage", async function (data) {
       try {
         const chatMessageNew = new ChatMessage();
@@ -67,17 +64,7 @@ async function main() {
           imageNew.image = image.image;
           await imageNew.save();
         });
-        if (messages) {
-          messages.push({
-            id: chatMessageNew.id,
-            actor: chatMessageNew.name_sender,
-            created_at: chatMessageNew.created_at,
-            images: imagesFile,
-            text: chatMessageNew.message,
-          });
-        }
-        console.log(messages);
-        socket.broadcast.emit("server:loadmessages", messages);
+        socket.broadcast.emit("server:loadmessages", await getChatMessages());
       } catch (error) {
         if (error instanceof Error) {
           console.error(error);
@@ -95,25 +82,15 @@ async function main() {
         new ChatMessage();
       message.message = messageEdited;
       await messagesRepository.save(message);
-      messages = messages?.map((message: any) => {
-        if (message.id == parseInt(messageId)) {
-          return {
-            ...message,
-            text: messageEdited,
-          };
-        }
-        return message;
-      });
-      socket.broadcast.emit("server:loadmessages", messages);
+
+      socket.broadcast.emit("server:loadmessages", await getChatMessages());
     });
 
     socket.on("server:deleteMessage", async function (data) {
       const messagesRepository = AppDataSource.getRepository(ChatMessage);
       await messagesRepository.delete({ id: parseInt(data) });
-      messages = messages?.filter(
-        (message: ChatMessage) => message.id == parseInt(data)
-      );
-      socket.broadcast.emit("server:loadmessages", messages);
+
+      socket.broadcast.emit("server:loadmessages", await getChatMessages());
     });
 
     socket.on("disconnect", () => {

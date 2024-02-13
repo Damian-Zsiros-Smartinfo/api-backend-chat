@@ -1,5 +1,5 @@
 import { Message } from "types/chatTypes";
-import { io, messages } from "../index";
+import { io } from "../index";
 import { Router } from "express";
 import { getChatMessages } from "../services/chatService";
 

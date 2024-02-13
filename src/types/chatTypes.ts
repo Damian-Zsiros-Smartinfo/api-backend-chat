@@ -17,5 +17,5 @@ export interface Image {
   id: string;
   link_image?: string;
   id_message: string;
-  image: string;
+  image: string; // base64
 }
