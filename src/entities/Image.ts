@@ -8,6 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   TableForeignKey,
+  UpdateDateColumn,
 } from "typeorm";
 import { ChatMessage } from "./ChatMessage";
 
@@ -16,13 +17,18 @@ export class Image extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ChatMessage, (chatMessage) => chatMessage.id)
-  @JoinColumn()
-  id_message: number;
+  @ManyToOne(() => ChatMessage, (chatMessage) => chatMessage.id, {
+    eager: true,
+  })
+  @JoinColumn({ name: "idMessage" })
+  idMessage: { id: number };
 
   @Column()
   image: string;
 
   @CreateDateColumn()
   created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }

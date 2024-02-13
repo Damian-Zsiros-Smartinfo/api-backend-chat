@@ -10,8 +10,9 @@ export async function getChatMessages() {
     const messagesWithImagesPromises = chat_messages.map(async (message) => {
       const messageInfo: ChatMessage = message;
 
-      const images_messages: Image[] = await ImageEntity.find({
-        where: { id_message: message.id },
+      const images_messages = await ImageEntity.find({
+        where: { idMessage: { id: messageInfo.id } },
+        relations: ["idMessage"],
       });
 
       return {

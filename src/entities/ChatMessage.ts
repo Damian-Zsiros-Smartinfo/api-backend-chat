@@ -15,7 +15,7 @@ export class ChatMessage extends BaseEntity {
   id: number;
 
   @ManyToOne(() => Chat, (chat) => chat.id)
-  @JoinColumn()
+  @JoinColumn({ name: "idChat" })
   id_chat: number;
 
   @Column("text", {
