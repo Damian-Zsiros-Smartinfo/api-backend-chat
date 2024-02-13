@@ -17,7 +17,7 @@ import { Image } from "./entities/Image";
 import { AppDataSource } from "./db/conexion";
 config();
 
-export let messages: any = [];
+let messages: any = [];
 const PORT = process.env.PORT || 4000;
 const app = express();
 const server = http.createServer(app);
@@ -47,17 +47,14 @@ async function main() {
   io.on("connection", (socket) => {
     console.log({ message: "a new client connected", id: socket.id });
     socket.join("chat");
-    socket.to("chat").emit("server:loadmessages", messages);
+    socket.broadcast.emit("server:loadmessages", messages);
     socket.on("server:addMessage", async function (data) {
       try {
-        if (messages) {
-          messages.push(data);
-        }
         const chatMessageNew = new ChatMessage();
         chatMessageNew.message = data.text;
         chatMessageNew.id_chat = 1;
         chatMessageNew.name_sender = data.actor;
-        await chatMessageNew.save({});
+        await chatMessageNew.save();
         const chatMessageAdded = chatMessageNew;
         const imagesFile: {
           file: { name: string };
@@ -70,6 +67,16 @@ async function main() {
           imageNew.image = image.image;
           await imageNew.save();
         });
+        if (messages) {
+          messages.push({
+            id: chatMessageNew.id,
+            actor: chatMessageNew.name_sender,
+            created_at: chatMessageNew.created_at,
+            images: imagesFile,
+            text: chatMessageNew.message,
+          });
+        }
+        console.log(messages);
         socket.broadcast.emit("server:loadmessages", messages);
       } catch (error) {
         if (error instanceof Error) {
@@ -97,6 +104,15 @@ async function main() {
         }
         return message;
       });
+      socket.broadcast.emit("server:loadmessages", messages);
+    });
+
+    socket.on("server:deleteMessage", async function (data) {
+      const messagesRepository = AppDataSource.getRepository(ChatMessage);
+      await messagesRepository.delete({ id: parseInt(data) });
+      messages = messages?.filter(
+        (message: ChatMessage) => message.id == parseInt(data)
+      );
       socket.broadcast.emit("server:loadmessages", messages);
     });
 

@@ -3,7 +3,7 @@ import { ChatMessage } from "../entities/ChatMessage";
 import { Image, Image as ImageEntity } from "../entities/Image";
 export async function getChatMessages() {
   try {
-    const chat_messages = await ChatMessage.find({ where: { id_chat: 1 } });
+    const chat_messages = await ChatMessage.find();
 
     if (!chat_messages) throw new Error();
 
@@ -26,8 +26,10 @@ export async function getChatMessages() {
     );
 
     const messagesWithImages = await Promise.all(messagesWithImagesPromises);
+    console.log(messagesWithImages);
     return messagesWithImages;
   } catch (error) {
     console.error(error);
   }
+  return [];
 }
