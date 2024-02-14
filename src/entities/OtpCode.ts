@@ -8,24 +8,19 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { Chat } from "./Chat";
+import { User } from "./User";
 
-@Entity("chat_messages")
-export class ChatMessage extends BaseEntity {
+@Entity()
+export class OtpCode extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
-
-  @ManyToOne(() => Chat, (chat) => chat.id)
-  @JoinColumn({ name: "idChat" })
-  id_chat: number;
-
-  @Column("text", {
-    default: "",
-  })
-  message: string;
+  id: string;
 
   @Column()
-  name_sender: string;
+  code: string;
+
+  @ManyToOne(() => User, (user) => user.id)
+  @JoinColumn({ name: "id_user" })
+  idUser: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamp" })
   createdAt: Date;

@@ -21,7 +21,7 @@ export class Image extends BaseEntity {
     eager: true,
   })
   @JoinColumn({ name: "idMessage" })
-  idMessage: { id: number };
+  idMessage: { id: number | 0 } | number;
 
   @Column()
   image: string;

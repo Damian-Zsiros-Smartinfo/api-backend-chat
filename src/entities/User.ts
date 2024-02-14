@@ -7,13 +7,22 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
-@Entity("chat")
-export class Chat extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity("users")
+export class User extends BaseEntity {
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @Column()
   name: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column()
+  phone: string;
+
+  @Column()
+  password: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamp" })
   createdAt: Date;

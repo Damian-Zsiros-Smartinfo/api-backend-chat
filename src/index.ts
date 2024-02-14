@@ -60,7 +60,7 @@ async function main() {
         }[] = data.images;
         await imagesFile.forEach(async (image) => {
           const imageNew = new Image();
-          imageNew.idMessage.id = chatMessageAdded.id;
+          imageNew.idMessage = chatMessageAdded.id;
           imageNew.image = image.image;
           await imageNew.save();
         });
