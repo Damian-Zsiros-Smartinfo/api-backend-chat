@@ -1,3 +1,5 @@
+import { Router } from "express";
+import bcrypt from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
 import express from "express";
 import { Server } from "socket.io";
@@ -5,16 +7,18 @@ import http from "http";
 import { getChatMessages } from "./services/chatService";
 import cors from "cors";
 import messageRouter from "./routes/messagesRoutes";
+import authRoutes from "./routes/authRoutes";
 import { Message } from "types/chatTypes";
 import morgan from "morgan";
 import { config } from "dotenv";
 import path from "path";
 import { writeFile } from "fs/promises";
 import uploadImage from "./services/uploadImagesService";
-import { arrayBufferToBase64 } from "./utils/arrayBufferToBase64";
 import { ChatMessage } from "./entities/ChatMessage";
 import { Image } from "./entities/Image";
 import { AppDataSource } from "./db/conexion";
+import { User } from "./entities/User";
+import { generateToken } from "./utils/JWTUtils";
 config();
 
 const PORT = process.env.PORT || 4000;
@@ -36,10 +40,15 @@ async function main() {
   app.get("/", (req, res) => {
     res.json({});
   });
+  AppDataSource.initialize();
 
   app.use(messageRouter);
+  app.use(authRoutes);
 
-  AppDataSource.initialize();
+  interface UserVerify {
+    email: string;
+    password: string;
+  }
 
   io.on("connection", async (socket) => {
     console.log({ message: "a new client connected", id: socket.id });
