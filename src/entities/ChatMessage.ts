@@ -16,12 +16,10 @@ export class ChatMessage extends BaseEntity {
   id: number;
 
   @ManyToOne(() => Chat, (chat) => chat.id)
-  @JoinColumn({ name: "idChat" })
+  @JoinColumn()
   id_chat: number;
 
-  @Column("text", {
-    default: "",
-  })
+  @Column("text")
   message: string;
 
   @Column()
@@ -29,7 +27,4 @@ export class ChatMessage extends BaseEntity {
 
   @CreateDateColumn({ name: "created_at", type: "timestamp" })
   createdAt: Date;
-
-  @UpdateDateColumn({ name: "updated_at", type: "timestamp" })
-  updatedAt: Date;
 }

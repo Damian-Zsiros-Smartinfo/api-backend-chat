@@ -18,7 +18,7 @@ export class User extends BaseEntity {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ unique: true })
   phone: string;
 
   @Column()
@@ -26,7 +26,4 @@ export class User extends BaseEntity {
 
   @CreateDateColumn({ name: "created_at", type: "timestamp" })
   createdAt: Date;
-
-  @UpdateDateColumn({ name: "updated_at", type: "timestamp" })
-  updatedAt: Date;
 }
