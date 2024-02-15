@@ -22,7 +22,7 @@ router.post("/login", async (req, res) => {
           message: "Invalid credentials",
         },
       });
-    const token = generateToken(userData, { expiresIn: "1d" });
+    const token = generateToken(data, { expiresIn: "1d" });
     res.cookie("token", token, {
       maxAge: 86400000,
       secure: true,
