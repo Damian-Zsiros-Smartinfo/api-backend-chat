@@ -23,6 +23,12 @@ router.post("/login", async (req, res) => {
         },
       });
     const token = generateToken(userData, { expiresIn: "1d" });
+    res.cookie("token", token, {
+      maxAge: 86400000,
+      secure: true,
+      sameSite: "none",
+      httpOnly: true,
+    });
     return res.json({
       logued: true,
       user: data,
@@ -41,6 +47,16 @@ router.post("/register", async (req, res) => {
     console.log(req.body);
     const { email, name, password, phone } = await req.body;
     const userData = { email, name, password, phone };
+    const existNumberPhone =
+      (await User.findBy({ phone: userData.phone })).length > 0;
+    if (existNumberPhone)
+      return res.status(400).json({
+        registered: false,
+        exists: existNumberPhone,
+        error: {
+          message: "Telefono ya registrado. Intentelo de nuevo.",
+        },
+      });
     const isSavedUserActual =
       (await User.findBy({ email: userData.email })).length > 0;
     if (isSavedUserActual)
