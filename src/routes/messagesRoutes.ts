@@ -2,10 +2,11 @@ import { Message } from "types/chatTypes";
 import { io } from "../index";
 import { Router } from "express";
 import { getChatMessages } from "../services/chatService";
+import { verifyToken } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/messages", async (req, res) => {
+router.get("/messages", verifyToken, async (req, res) => {
   try {
     const messages = await getChatMessages();
     res.status(200).json({
@@ -19,7 +20,7 @@ router.get("/messages", async (req, res) => {
   }
 });
 
-router.post("/messages", (req, res) => {
+router.post("/messages", verifyToken, (req, res) => {
   try {
     const data = req.body;
     io.on("connection", (socket) => {
@@ -31,7 +32,7 @@ router.post("/messages", (req, res) => {
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
- 
+
 router.put("/messages", (req, res) => {
   try {
     const data = req.body;
