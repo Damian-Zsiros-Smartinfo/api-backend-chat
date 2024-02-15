@@ -35,10 +35,11 @@ router.post("/login", async (req, res) => {
       token,
     });
   } catch (error) {
-    return res.status(500).json({
-      logued: false,
-      error,
-    });
+    if (error instanceof Error)
+      return res.status(500).json({
+        logued: false,
+        error: { ...error },
+      });
   }
 });
 
