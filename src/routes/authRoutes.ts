@@ -11,30 +11,35 @@ const router = Router();
 
 router.post("/login", async (req, res) => {
   try {
-    const userData: UserVerify = req.body;
+    const { email, password } = req.body;
+    const userData: UserVerify = { email, password };
     if (!userData.email) throw new Error();
-    const data = await User.findOneBy({ email: userData.email });
+    const {
+      id,
+      name,
+      phone,
+      password: passwordHashed,
+      createdAt,
+    } = (await User.getRepository().findOneBy({
+      email: userData.email,
+    })) || {};
     if (!userData.password) throw new Error("Password is required");
-    if (!(await bcrypt.compareSync(userData.password, data?.password || "")))
+    if (!(await bcrypt.compareSync(userData.password, passwordHashed || "")))
       return res.status(403).json({
         logued: false,
         error: {
           message: "Invalid credentials",
         },
       });
-    const token = generateToken(data, { expiresIn: "1d" });
-    res.cookie("token", token, {
-      maxAge: 86400000,
-      secure: true,
-      sameSite: "none",
-      httpOnly: true,
-    });
+    const dataUserFinal = { id, email, name, phone, passwordHashed, createdAt };
+    const token = generateToken(dataUserFinal, { expiresIn: "1d" });
     return res.json({
       logued: true,
-      user: data,
+      user: dataUserFinal,
       token,
     });
   } catch (error) {
+    console.error(error);
     if (error instanceof Error)
       return res.status(500).json({
         logued: false,

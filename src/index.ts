@@ -25,14 +25,8 @@ export const io = new Server(server, {
 });
 
 async function main() {
-  app.use(
-    cors({
-      origin: "*",
-      credentials: true,
-    })
-  );
+  app.use(cors());
   app.use(express.json());
-  app.use(cookiesParser());
   app.use(morgan("combined"));
 
   app.get("/", (req, res) => {
