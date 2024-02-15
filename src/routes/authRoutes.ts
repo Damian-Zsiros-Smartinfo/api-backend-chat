@@ -33,6 +33,7 @@ router.post("/login", async (req, res) => {
       });
     const dataUserFinal = { id, email, name, phone, passwordHashed, createdAt };
     const token = generateToken(dataUserFinal, { expiresIn: "1d" });
+    console.log(token);
     return res.json({
       logued: true,
       user: dataUserFinal,
