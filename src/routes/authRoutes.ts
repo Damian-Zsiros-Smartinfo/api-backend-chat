@@ -38,7 +38,7 @@ router.post("/login", async (req, res) => {
     if (error instanceof Error)
       return res.status(500).json({
         logued: false,
-        error: { ...error },
+        error: { message: error.message },
       });
   }
 });
